@@ -1,0 +1,2 @@
+# cat=Backend; type=options[None=0,Admins=1,Non-admin=2,All=3]; label=Backend users which get the option to hide whole page tree
+hidePageTree = 0

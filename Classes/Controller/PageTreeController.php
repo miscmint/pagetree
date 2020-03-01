@@ -15,11 +15,11 @@ class PageTreeController
 {
     /**
      * @var PageRepository
-     * @inject
      */
     protected $pageRepository;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->pageRepository = GeneralUtility::makeInstance(PageRepository::class);
     }
 
@@ -36,11 +36,18 @@ class PageTreeController
 
         $pageAndSubpagesUids = $this->getPageAndSubpageUids((int)$pageUid);
         $backendUserConfiguration = GeneralUtility::makeInstance(BackendUserConfiguration::class);
-        foreach($pageAndSubpagesUids as $pageUid) {
-            $backendUserConfiguration->set('BackendComponents.States.Pagetree.stateHash.0_' . $pageUid, 0);
-        }
+        $backendUserConfigurationArray = $backendUserConfiguration->getAll();
+        $stateHashes = $backendUserConfigurationArray['BackendComponents']['States']['Pagetree']['stateHash'];
 
-        return (new JsonResponse())->setPayload($pageAndSubpagesUids);
+        foreach ($stateHashes as $key => $hash) {
+            foreach ($pageAndSubpagesUids as $pageUid) {
+                $hashArray = explode('_', $key);
+                if ($pageUid == $hashArray[1]) {
+                    $backendUserConfiguration->set('BackendComponents.States.Pagetree.stateHash.' . $key, 0);
+                }
+            }
+        }
+        return (new JsonResponse())->setPayload();
     }
 
     /**
@@ -52,16 +59,16 @@ class PageTreeController
         $pages = [$uid];
         $subpages = $this->pageRepository->getMenu($uid, 'uid');
         
-        foreach($subpages as $subpage) {
+        foreach ($subpages as $subpage) {
             $pages = array_merge($pages, $this->getPageAndSubpageUids($subpage['uid']));
         }
         return $pages;
     }
 
     /**
-	 * @param PageRepository $pageRepository
-	 */
-	public function injectPageRepository(PageRepository $pageRepository) 
+     * @param PageRepository $pageRepository
+     */
+    public function injectPageRepository(PageRepository $pageRepository)
     {
         $this->pageRepository = $pageRepository;
     }
